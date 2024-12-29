@@ -16,3 +16,8 @@ interface MahasiswaRepository{
     suspend fun getMahasiswaById(nim: String): Mahasiswa
 }
 
+class NetworkKontakRepository(
+    private val kontakApiService: MahasiswaService
+): MahasiswaRepository {
+
+}
