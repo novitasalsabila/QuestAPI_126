@@ -23,6 +23,9 @@ class NetworkKontakRepository(
         kontakApiService.insertMahasiswa(mahasiswa)
     }
 
+    override suspend fun getMahasiswa(): List<Mahasiswa> =
+        kontakApiService.getAllMahasiswa()
+
 
 
 }
