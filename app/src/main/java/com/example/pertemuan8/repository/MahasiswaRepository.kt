@@ -45,6 +45,8 @@ class NetworkKontakRepository(
         }
     }
 
-
+    override suspend fun getMahasiswaById(nim: String):Mahasiswa {
+        return kontakApiService.getMahasiswabyNim(nim)
+    }
 
 }
