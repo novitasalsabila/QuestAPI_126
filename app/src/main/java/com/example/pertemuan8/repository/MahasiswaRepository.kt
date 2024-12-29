@@ -26,6 +26,10 @@ class NetworkKontakRepository(
     override suspend fun getMahasiswa(): List<Mahasiswa> =
         kontakApiService.getAllMahasiswa()
 
+    override suspend fun updateMahasiswa(nim: String, mahasiswa: Mahasiswa) {
+        kontakApiService.updateMahasiswa(nim, mahasiswa)
+    }
+
 
 
 }
