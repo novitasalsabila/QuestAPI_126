@@ -19,5 +19,10 @@ interface MahasiswaRepository{
 class NetworkKontakRepository(
     private val kontakApiService: MahasiswaService
 ): MahasiswaRepository {
+    override suspend fun insertMahasiswa(mahasiswa: Mahasiswa) {
+        kontakApiService.insertMahasiswa(mahasiswa)
+    }
+
+
 
 }
