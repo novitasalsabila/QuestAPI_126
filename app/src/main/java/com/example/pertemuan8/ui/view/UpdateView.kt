@@ -1,40 +1,39 @@
 package com.example.pertemuan8.ui.view
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pertemuan8.ui.navigasi.DestinasiNavigasi
 import com.example.pertemuan8.ui.viewmodel.PenyediaViewModel
 import com.example.pertemuan8.ui.viewmodel.UpdateUiEvent
 import com.example.pertemuan8.ui.viewmodel.UpdateUiState
 import com.example.pertemuan8.ui.viewmodel.UpdateViewModel
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pertemuan8.ui.CostumWidget.CoustumeTopAppBar
 import kotlinx.coroutines.launch
 
 object DestinasiUpdate : DestinasiNavigasi {
@@ -44,7 +43,7 @@ object DestinasiUpdate : DestinasiNavigasi {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UpdateScreen(
+fun UpdateMhsScreen(
     nim: String,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier,
@@ -53,14 +52,15 @@ fun UpdateScreen(
     val coroutineScope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
+    // Tambahkan LaunchedEffect untuk mengambil data saat layar dibuka
     LaunchedEffect(nim) {
         viewModel.getMahasiswaById(nim)
     }
 
     Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection).padding(horizontal = 10.dp),
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            CostumeTopAppBar(
+            CoustumeTopAppBar(
                 title = DestinasiUpdate.titleRes,
                 canNavigateBack = true,
                 scrollBehavior = scrollBehavior,
@@ -103,23 +103,10 @@ fun UpdateBody(
         )
         Button(
             onClick = onSaveClick,
-            shape = MaterialTheme.shapes.extraLarge,
+            shape = MaterialTheme.shapes.small,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Send,
-                    contentDescription = "Save Icon",
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    text = "Update",
-                    fontSize = 16.sp
-                )
-            }
+            Text(text = "Update")
         }
     }
 }
@@ -132,89 +119,81 @@ fun FormInput(
     onValueChange: (UpdateUiEvent) -> Unit = {},
     enabled: Boolean = true
 ) {
+    val jenisKelamin = listOf("Laki-laki", "Perempuan")
     val kelas = listOf("A", "B", "C", "D")
-    val JenisKelamin = listOf("Laki - Laki", "Perempuan")
 
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         OutlinedTextField(
             value = updateUiEvent.nama,
-            onValueChange = {onValueChange(updateUiEvent.copy(nama = it))},
-            label = { Text("Nama")},
-            placeholder = { Text("Masukkan Nama") },
+            onValueChange = { onValueChange(updateUiEvent.copy(nama = it)) },
+            label = { Text("Nama") },
             modifier = Modifier.fillMaxWidth(),
             enabled = enabled,
             singleLine = true
         )
         OutlinedTextField(
             value = updateUiEvent.nim,
-            onValueChange = {onValueChange(updateUiEvent.copy(nim = it))},
-            label = { Text("Nim")},
-            placeholder = { Text("Masukkan Nim") },
+            onValueChange = { onValueChange(updateUiEvent.copy(nim = it)) },
+            label = { Text("NIM") },
             modifier = Modifier.fillMaxWidth(),
-            enabled = true,
+            enabled = true, // Tidak diizinkan mengubah NIM
             singleLine = true
         )
-        Text("Jenis Kelamin", style = MaterialTheme.typography.bodyMedium)
-        Row() {
-            JenisKelamin.forEach { jK ->
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = "Jenis Kelamin")
+        Row(modifier = Modifier.fillMaxWidth()) {
+            jenisKelamin.forEach { jk ->
                 Row(
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                    modifier = Modifier.padding(end = 16.dp)
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
                 ) {
-                    androidx.compose.material3.RadioButton(
-                        selected = updateUiEvent.jenisKelamin == jK,
-                        onClick = { onValueChange(updateUiEvent.copy(jenisKelamin = jK)) }
+                    RadioButton(
+                        selected = updateUiEvent.jenisKelamin == jk,
+                        onClick = { onValueChange(updateUiEvent.copy(jenisKelamin = jk)) }
                     )
-                    Text(
-                        text = jK,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
+                    Text(text = jk)
                 }
             }
         }
         OutlinedTextField(
             value = updateUiEvent.alamat,
-            onValueChange = {onValueChange(updateUiEvent.copy(alamat = it))},
-            label = { Text("Alamat")},
-            placeholder = { Text("Masukkan Alamat") },
+            onValueChange = { onValueChange(updateUiEvent.copy(alamat = it)) },
+            label = { Text("Alamat") },
             modifier = Modifier.fillMaxWidth(),
             enabled = enabled,
             singleLine = true
         )
-        Text("Kelas", style = MaterialTheme.typography.bodyMedium)
-        Row() {
-            kelas.forEach { kelas ->
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = "Kelas")
+        Row(modifier = Modifier.fillMaxWidth()) {
+            kelas.forEach { k ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(end = 16.dp)
+                    horizontalArrangement = Arrangement.Start
                 ) {
-                    androidx.compose.material3.RadioButton(
-                        selected = updateUiEvent.kelas == kelas,
-                        onClick = { onValueChange(updateUiEvent.copy(kelas = kelas)) }
+                    RadioButton(
+                        selected = updateUiEvent.kelas == k,
+                        onClick = { onValueChange(updateUiEvent.copy(kelas = k)) }
                     )
-                    Text(
-                        text = kelas,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
+                    Text(text = k)
                 }
             }
         }
         OutlinedTextField(
             value = updateUiEvent.angkatan,
-            onValueChange = {onValueChange(updateUiEvent.copy(angkatan = it))},
+            onValueChange = { onValueChange(updateUiEvent.copy(angkatan = it)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            label = { Text("Angkatan")},
-            placeholder = { Text("Masukkan Angkatan") },
+            label = { Text("Angkatan") },
             modifier = Modifier.fillMaxWidth(),
             enabled = enabled,
             singleLine = true
         )
         Divider(
-            thickness = 5.dp,
-            modifier = Modifier.padding(5.dp)
+            thickness = 8.dp,
+            modifier = Modifier.padding(12.dp)
         )
     }
 }
