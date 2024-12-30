@@ -22,7 +22,7 @@ interface MahasiswaService {
     suspend fun getAllMahasiswa(): List<Mahasiswa>
 
     @GET("baca1mahasiswa.php")
-    suspend fun getMahasiswabyNim(@Query("nim")nim: String): Mahasiswa
+    suspend fun getMahasiswaById(@Query("nim")nim: String): Mahasiswa
 
     @PUT("editmahasiswa.php")
     suspend fun updateMahasiswa(@Query("nim")nim: String, @Body mahasiswa: Mahasiswa)
