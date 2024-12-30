@@ -1,43 +1,48 @@
 package com.example.pertemuan8.ui.viewmodel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pertemuan8.model.Mahasiswa
 import com.example.pertemuan8.repository.MahasiswaRepository
-import com.example.pertemuan8.ui.view.DetailDestination
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-sealed class DetailMahasiswaUiState {
-    data class Success(val mahasiswa: Mahasiswa) : DetailMahasiswaUiState()
+class DetailViewModel(private val mhsRepo: MahasiswaRepository) : ViewModel() {
 
-    object Error : DetailMahasiswaUiState()
-    object Loading : DetailMahasiswaUiState()
-}
+    private val _detailUiState = MutableStateFlow<DetailUiState>(DetailUiState.Loading)
+    val detailUiState: StateFlow<DetailUiState> = _detailUiState.asStateFlow()
 
-class DetailViewModel(
-    savedStateHandle: SavedStateHandle,
-    private val mahasiswaRepository: MahasiswaRepository
-) : ViewModel() {
-    private val mahasiswaNim: String = checkNotNull(savedStateHandle[DetailDestination.mahasiswaNim])
-    var detailMahasiswaUiState: DetailMahasiswaUiState by mutableStateOf(DetailMahasiswaUiState.Loading)
-        private set
-
-    init {
-        getMahasiswabyId()
-    }
-
-    fun getMahasiswabyId() {
+    fun getMahasiswaById(nim: String) {
         viewModelScope.launch {
-            detailMahasiswaUiState = DetailMahasiswaUiState.Loading
-            detailMahasiswaUiState = try {
-                DetailMahasiswaUiState.Success(mahasiswa = mahasiswaRepository.getMahasiswaById(mahasiswaNim))
+            try {
+                val mahasiswa = mhsRepo.getMahasiswaById(nim)
+                if (mahasiswa != null) {
+                    _detailUiState.value = DetailUiState.Success(mahasiswa)
+                } else {
+                    _detailUiState.value = DetailUiState.Error("Data Mahasiswa tidak ditemukan.")
+                }
             } catch (e: Exception) {
-                DetailMahasiswaUiState.Error
+                _detailUiState.value = DetailUiState.Error(e.localizedMessage ?: "Terjadi kesalahan.")
             }
         }
     }
+
+    fun deleteMhs(nim: String) {
+        viewModelScope.launch {
+            try {
+                mhsRepo.deleteMahasiswa(nim)
+                _detailUiState.value = DetailUiState.Error("Data Mahasiswa telah dihapus.")
+            } catch (e: Exception) {
+                _detailUiState.value = DetailUiState.Error(e.localizedMessage ?: "Gagal menghapus data.")
+            }
+        }
+    }
+}
+
+sealed class DetailUiState {
+    object Loading : DetailUiState()
+    data class Success(val mahasiswa: Mahasiswa) : DetailUiState()
+    data class Error(val message: String) : DetailUiState()
 }
