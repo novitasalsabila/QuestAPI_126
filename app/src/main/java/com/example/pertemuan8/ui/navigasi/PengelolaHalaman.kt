@@ -1,72 +1,77 @@
 package com.example.pertemuan8.ui.navigasi
 
-import com.example.pertemuan8.ui.view.DestinasiEntry
-import com.example.pertemuan8.ui.view.DestinasiHome
-import com.example.pertemuan8.ui.view.HomeScreen
-
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.example.pertemuan8.ui.view.DestinasiDetail
-import com.example.pertemuan8.ui.view.DestinasiUpdate
-import com.example.pertemuan8.ui.view.DetailView
+import com.example.pertemuan8.ui.view.DestinasiEntry
+import com.example.pertemuan8.ui.view.DestinasiHome
+import com.example.pertemuan8.ui.view.DetailMhsScreen
 import com.example.pertemuan8.ui.view.EntryMhsScreen
-import com.example.pertemuan8.ui.view.UpdateScreen
+import com.example.pertemuan8.ui.view.HomeScreen
+import com.example.pertemuan8.ui.view.UpdateMhsScreen
 
 @Composable
-fun PengelolaHalaman(navController: NavHostController = rememberNavController()){
+fun PengelolaHalaman(navController: NavHostController = rememberNavController()) {
+
+    // Mengatur navigasi antar layar menggunakan NavHost
     NavHost(
-        navController = navController,
+        navController = navController, // Controller navigasi
         startDestination = DestinasiHome.route,
-        modifier = Modifier
-    ){
-        composable(DestinasiHome.route){
+        modifier = Modifier,
+    ) {
+        // Halaman Home
+        composable(DestinasiHome.route) {
             HomeScreen(
-                navigateToltemEntry = { navController.navigate(DestinasiEntry.route)},
+                navigateToItemEntry = { navController.navigate(DestinasiEntry.route) }, // Navigasi ke EntryMhsScreen
                 onDetailClick = { nim ->
-                    navController.navigate("${DestinasiDetail.route}/$nim")
+                    navController.navigate("detail/$nim") // Navigasi ke halaman detail dengan NIM
                 }
             )
         }
-        composable(DestinasiEntry.route){
+
+        // Halaman EntryMhs
+        composable(DestinasiEntry.route) {
             EntryMhsScreen(navigateBack = {
-                navController.navigate(DestinasiHome.route){
-                    popUpTo(DestinasiHome.route){
-                        inclusive = true
+                navController.navigate(DestinasiHome.route) { // Navigasi kembali ke HomeScreen
+                    popUpTo(DestinasiHome.route) {
+                        inclusive = true // Bersihkan layar sebelumnya
                     }
                 }
             })
         }
+
+        // Halaman UpdateMhs
         composable(
-            route = "${DestinasiDetail.route}/{nim}",
-        ) { backStackEntry ->
-            val nim = backStackEntry.arguments?.getString("nim") ?: ""
-            DetailView(
-                nim = nim,
-                onNavigateBack = { navController.popBackStack() },
-                onEditClick = {
-                    navController.navigate("${DestinasiUpdate.route}/$nim")
-                }
-            )
-        }
-        composable(
-            route = "${DestinasiUpdate.route}/{nim}",
+            route = "update/{nim}",
             arguments = listOf(navArgument("nim") { type = NavType.StringType })
         ) { backStackEntry ->
             val nim = backStackEntry.arguments?.getString("nim") ?: ""
-            UpdateScreen(
+            UpdateMhsScreen(
                 nim = nim,
                 navigateBack = {
-                    navController.navigate(DestinasiHome.route) {
-                        popUpTo(DestinasiHome.route) {
-                            inclusive = true
-                        }
-                    }
+                    navController.popBackStack() // Kembali ke halaman sebelumnya
+                }
+            )
+        }
+
+        // Halaman DetailMhs
+        composable(
+            route = "detail/{nim}",
+            arguments = listOf(navArgument("nim") { type = NavType.StringType }) // Definisikan parameter "nim"
+        ) { backStackEntry ->
+            val nim = backStackEntry.arguments?.getString("nim") ?: "" // Ambil nilai NIM dari parameter
+            DetailMhsScreen(
+                nim = nim,
+                navigateEdit = { editNim ->
+                    navController.navigate("update/$editNim") // Navigasi ke halaman update dengan NIM
+                },
+                navigateBack = {
+                    navController.popBackStack() // Kembali ke halaman sebelumnya
                 }
             )
         }
