@@ -1,35 +1,24 @@
 package com.example.pertemuan8.ui.view
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -42,51 +31,59 @@ import com.example.pertemuan8.ui.navigasi.DestinasiNavigasi
 import com.example.pertemuan8.ui.viewmodel.HomeUiState
 import com.example.pertemuan8.ui.viewmodel.HomeViewModel
 import com.example.pertemuan8.ui.viewmodel.PenyediaViewModel
+import androidx.compose.foundation.lazy.items
 
 
+// Objek untuk mendefinisikan rute dan judul layar home
 object DestinasiHome : DestinasiNavigasi {
-    override val route = "home"
-    override val titleRes = "Home Mhs"
+    override val route = "home" // Rute navigasi layar home
+    override val titleRes = "Home Mahasiswa"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navigateToltemEntry: () -> Unit,
+    navigateToItemEntry: () -> Unit, // Navigasi ke layar tambah data
     modifier: Modifier = Modifier,
-    onDetailClick: (String) -> Unit = {},
-    viewModel: HomeViewModel = viewModel(factory = PenyediaViewModel.Factory)
+    onDetailClick: (String) -> Unit = {}, // Navigasi ke halaman detail
+    viewModel: HomeViewModel = viewModel(factory = PenyediaViewModel.Factory) // ViewModel untuk mengelola data
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            .background(MaterialTheme.colorScheme.background),
         topBar = {
-            CoustumeTopAppBar(
+            CoustumeTopAppBar( // Toolbar dengan tombol refresh
                 title = DestinasiHome.titleRes,
                 canNavigateBack = false,
                 scrollBehavior = scrollBehavior,
                 onRefresh = {
-                    viewModel.getMhs()
+                    viewModel.getMhs() // Memuat ulang data mahasiswa
                 }
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = navigateToltemEntry,
+                onClick = navigateToItemEntry,
                 shape = MaterialTheme.shapes.medium,
-                modifier = Modifier.padding(18.dp)
-            ){
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Kontak")
+                modifier = Modifier.padding(18.dp),
+                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Mahasiswa")
             }
         },
-    ){ innerPadding ->
+    ) { innerPadding ->
+        // Menampilkan status data mahasiswa
         HomeStatus(
             homeUiState = viewModel.mhsUiState,
             retryAction = { viewModel.getMhs() },
             modifier = Modifier.padding(innerPadding),
-            onDetailClick = onDetailClick, onDeleteClick = {
-                viewModel.deleteMhs(it.nim)
-                viewModel.getMhs()
+            onDetailClick = onDetailClick,
+            onDeleteClick = { mahasiswa ->
+                viewModel.deleteMhs(mahasiswa.nim) // Menghapus data mahasiswa
+                viewModel.getMhs() // Memuat ulang data setelah dihapus
             }
         )
     }
@@ -94,43 +91,48 @@ fun HomeScreen(
 
 @Composable
 fun HomeStatus(
-    homeUiState: HomeUiState,
-    retryAction: () -> Unit,
+    homeUiState: HomeUiState, // Status data mahasiswa
+    retryAction: () -> Unit, // Aksi untuk memuat ulang
     modifier: Modifier = Modifier,
-    onDetailClick: (String) -> Unit,
     onDeleteClick: (Mahasiswa) -> Unit = {},
-){
+    onDetailClick: (String) -> Unit
+) {
     when (homeUiState) {
-        is HomeUiState.Loading -> OnLoading(modifier = modifier.fillMaxSize())
-
-        is HomeUiState.Success ->
+        is HomeUiState.Loading -> OnLoading(modifier = modifier.fillMaxSize()) // Menampilkan loading
+        is HomeUiState.Success -> {
             if (homeUiState.mahasiswa.isEmpty()) {
-                return Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "Tidak ada data Kontak")
+                // Tampilkan pesan jika data kosong
+                Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = "Tidak ada data Mahasiswa")
                 }
             } else {
+                // Tampilkan daftar mahasiswa
                 MhsLayout(
                     mahasiswa = homeUiState.mahasiswa,
                     modifier = modifier.fillMaxWidth(),
-                    onDetailClick = {
-                        onDetailClick(it.nim)
-                    },
-                    onDeleteClick = {
-                        onDeleteClick(it)
-                    }
+                    onDetailClick = { onDetailClick(it.nim) }, // Mengarahkan ke detail
+                    onDeleteClick = { onDeleteClick(it) }
                 )
             }
-        is HomeUiState.Error -> OnError(retryAction, modifier = modifier.fillMaxSize())
+        }
+        is HomeUiState.Error -> OnError(retryAction, modifier = modifier.fillMaxSize()) // Tampilkan pesan error
     }
 }
 
 @Composable
-fun OnLoading(modifier: Modifier = Modifier) {
-    Image(
-        modifier = modifier.size(200.dp),
-        painter = painterResource(R.drawable.loading_img),
-        contentDescription = stringResource(R.string.loading)
-    )
+fun OnLoading(
+    modifier: Modifier
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            modifier = Modifier.size(70.dp), // Ukuran eksplisit di sini
+            painter = painterResource(id = R.drawable.loading_img),
+            contentDescription = stringResource(R.string.loading)
+        )
+    }
 }
 
 @Composable
@@ -139,11 +141,14 @@ fun OnError(retryAction: () -> Unit, modifier: Modifier = Modifier) {
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
-    )  {
+    ) {
         Image(
-            painter = painterResource(id = R.drawable.ic_connection_error),
-            contentDescription = ""
+            painter = painterResource(id = R.drawable.ic_connection_error), contentDescription = ""
         )
+        Text(text = stringResource(R.string.loading_failed), modifier = Modifier.padding(16.dp))
+        Button(onClick = retryAction) {
+            Text(stringResource(R.string.retry))
+        }
     }
 }
 
@@ -152,23 +157,20 @@ fun MhsLayout(
     mahasiswa: List<Mahasiswa>,
     modifier: Modifier = Modifier,
     onDetailClick: (Mahasiswa) -> Unit,
-    onDeleteClick: (Mahasiswa) -> Unit = {},
-){
+    onDeleteClick: (Mahasiswa) -> Unit = {}
+) {
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(mahasiswa){kontak ->
+        items(mahasiswa) { mahasiswa ->
             MhsCard(
-                mahasiswa = kontak,
+                mahasiswa = mahasiswa,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable {
-                        onDetailClick(kontak)},
-                onDeleteClick = {
-                    onDeleteClick(kontak)
-                }
+                    .clickable { onDetailClick(mahasiswa) }, // Fungsi klik untuk detail
+                onDeleteClick = { onDeleteClick(mahasiswa) }
             )
         }
     }
@@ -176,48 +178,106 @@ fun MhsLayout(
 
 @Composable
 fun MhsCard(
-    mahasiswa: Mahasiswa,
+    mahasiswa: Mahasiswa, // Data mahasiswa
     modifier: Modifier = Modifier,
     onDeleteClick: (Mahasiswa) -> Unit = {}
 ) {
+    // State untuk menampilkan dialog konfirmasi
+    var deleteConfirmationRequired by remember { mutableStateOf(false) }
+
     Card(
-        modifier = modifier,
+        modifier = modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+            .shadow(8.dp, shape = MaterialTheme.shapes.medium), // Tambahkan bayangan
         shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary // Warna latar belakang kartu
+        )
     ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            // Gambar profil
+            Image(
+                painter = painterResource(id = R.drawable.profile),
+                contentDescription = "Foto Mahasiswa",
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(MaterialTheme.shapes.small) // Bentuk lingkaran
+            )
+
+            Spacer(Modifier.width(16.dp)) // Jarak antar elemen
+
+            // Informasi Mahasiswa
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
                     text = mahasiswa.nama,
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.secondaryContainer // Warna teks
                 )
-                Spacer(Modifier.weight(1f))
-                IconButton(onClick = { onDeleteClick(mahasiswa) }) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = null,
-                    )
-                }
                 Text(
                     text = mahasiswa.nim,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondaryContainer
+                )
+                Text(
+                    text = mahasiswa.alamat,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondaryContainer
                 )
             }
-            Text(
-                text = mahasiswa.kelas,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = mahasiswa.alamat,
-                style = MaterialTheme.typography.titleMedium
-            )
+
+            // Tombol hapus dengan animasi
+            IconButton(
+                onClick = { deleteConfirmationRequired = true },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error // Warna ikon
+                )
+            }
         }
     }
+
+    // Dialog konfirmasi hapus
+    if (deleteConfirmationRequired) {
+        DeleteConfirmationDialog(
+            onDeleteConfirm = {
+                deleteConfirmationRequired = false
+                onDeleteClick(mahasiswa)
+            },
+            onDeleteCancel = { deleteConfirmationRequired = false }
+        )
+    }
+}
+
+@Composable
+private fun DeleteConfirmationDialog(
+    onDeleteConfirm: () -> Unit,
+    onDeleteCancel: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    AlertDialog(
+        onDismissRequest = { onDeleteCancel() },
+        title = { Text("Delete Data") },
+        text = { Text("Apakah anda yakin ingin menghapus data ini?") },
+        modifier = modifier,
+        dismissButton = {
+            TextButton(onClick = onDeleteCancel) {
+                Text(text = "Cancel")
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDeleteConfirm) {
+                Text(text = "Yes")
+            }
+        }
+    )
 }
