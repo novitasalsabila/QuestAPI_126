@@ -24,5 +24,5 @@ class MahasiswaContainer: AppContainer {
     // Menentukan URL dasar untuk permintaan API
 
     private val mahasiswaService: MahasiswaService by lazy { retrofit.create(MahasiswaService::class.java) }
-    override val mahasiswaRepository: MahasiswaRepository by lazy { NetworkKontakRepository (mahasiswaService) }
+    override val mahasiswaRepository: MahasiswaRepository by lazy { NetworkMahasiswaRepository (mahasiswaService) }
 }
